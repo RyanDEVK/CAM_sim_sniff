@@ -34,17 +34,14 @@ void setup() {
   display.display();
   display.clearDisplay();
   delay(1000);
- // display.drawBitmap(0, 0, myBitmap, 128, 64, SSD1306_WHITE);
-  //display.display();
- // long int k=strtol("thi sis text",NULL,16);
-  //Serial.println(k);
+ 
 }
 
 void loop() {
    
    while(true)
    {
-    if (mcp2515.readMessage(&canMsg) == MCP2515::ERROR_OK) 
+    if (mcp2515.readMessage(&canMsg) == MCP2515::ERROR_OK) //continuously read off the CAN line and display 8 bytes
    
       {
       display.setCursor(20,20);
