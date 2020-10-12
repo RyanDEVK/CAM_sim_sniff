@@ -12,9 +12,11 @@ MCP2515 mcp2515(2);
 
 void ExpedString(String message);
 float ping_distance();
-static unsigned long echoTime;
-static float rangeCm;
+
+unsigned long echoTime;
+float rangeCm;
 String output ="the range in cm is: ";
+char buf[8];
 ////////test cases for various DLC's/////////
 String test1="the8char"; //8 chars
 String test2="abcde fghijklmno"; //16chars
@@ -53,19 +55,21 @@ void loop()
   ExpedString(test3);
   delay(1000);
   Heltec.display->setFont(ArialMT_Plain_16);
-  for(;;)
+  for(;;)//continously send US data range over CAN bus
   {
      rangeCm=ping_distance();
+     gcvt(rangeCm,5,buf);
      Heltec.display->clear();
      Heltec.display->drawStringMaxWidth(0,0,128,output+rangeCm);
      Heltec.display->display();
      delay(62);
+     ExpedString(buf);
   }
   
 }
 
 void ExpedString(String message)  // Function takes in string
-{                                 // manipulates breakup in 8 bit chunks if needed
+{                                 // manipulates breakup in 8 byte chunks if needed
   String chunk="";                 // prepares CAN bus message and sends it.
   int fdlc= message.length();  
   int strindex=0;                 
@@ -87,14 +91,15 @@ void ExpedString(String message)  // Function takes in string
        Heltec.display->display();
       mcp2515.sendMessage(&canMsg);
       delay(1500);
-      else if (fdlc==0)
+    }
+     else if (fdlc==0)
       {
        Heltec.display->clear();
        Heltec.display->drawStringMaxWidth(0,0,128,"empty string supplied, no mesasge to be sent\n");
        Heltec.display->display();
       }
     }
-  }
+  
   else if(!(fdlc%8))              //fdlc is a multiple of 8 but not 8 case 
                                   //faster manipulation than "other" cases
   { 
@@ -144,7 +149,7 @@ void ExpedString(String message)  // Function takes in string
     {
       canMsg.data[i]=message[strindex];
       chunk=chunk+message[strindex];
-      strindex++;
+      i++;
     }
     Heltec.display->clear();
     Heltec.display->drawStringMaxWidth(0,0,128,chunk);
